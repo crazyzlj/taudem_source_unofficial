@@ -1,12 +1,12 @@
-/*  Edit Raster main program to edit grid cell values and make minor changes where necessary.
+/*  Set Region main program to set grid cell values for a grid processing region as part of RWD.
      
   David Tarboton
   Utah State University  
-  November 24 2016 
+  January 15, 2017 
 
 */
 
-/*  Copyright (C) 2016  David Tarboton, Utah State University
+/*  Copyright (C) 2017  David Tarboton, Utah State University
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License 
@@ -45,25 +45,37 @@ email:  dtarb@usu.edu
 #include "commonLib.h"
 #include "tardemlib.h"
 
-int editraster(char *rasterfile, char *newfile, char *changefile);
+int setregion(char *fdrfile, char *regiongwfile, char *newfile, int32_t regionID);
 
 int main(int argc,char **argv)  
 {
-   char rasterfile[MAXLN],changefile[MAXLN],newfile[MAXLN];
+   char fdrfile[MAXLN],regiongwfile[MAXLN],newfile[MAXLN];
+   int32_t regionID = 1;
    int i = 1;
    if(argc <= 2) goto errexit;	
 	while (argc > i)
 	{
-		if (strcmp(argv[i], "-in") == 0)
+		if (strcmp(argv[i], "-p") == 0)
 		{
 			i++;
 			if (argc > i)
 			{
-				strcpy(rasterfile, argv[i]);
+				strcpy(fdrfile, argv[i]);
 				i++;
 			}
 			else goto errexit;
 		}
+		else if (strcmp(argv[i], "-gw") == 0)
+		{
+			i++;
+			if (argc > i)
+			{
+				strcpy(regiongwfile, argv[i]);
+				i++;
+			}
+			else goto errexit;
+		}
+
 		else if (strcmp(argv[i], "-out") == 0)
 		{
 			i++;
@@ -74,12 +86,12 @@ int main(int argc,char **argv)
 			}
 			else goto errexit;
 		}
-		else if (strcmp(argv[i], "-changes") == 0)
+		else if (strcmp(argv[i], "-id") == 0)
 		{
 			i++;
 			if (argc > i)
 			{
-				strcpy(changefile, argv[i]);
+				sscanf(argv[i], "%d", &regionID);
 				i++;
 			}
 			else goto errexit;
@@ -88,14 +100,15 @@ int main(int argc,char **argv)
 
 	}
 	int err;
-    if( (err=editraster(rasterfile, newfile, changefile)) != 0)
-        printf("Threshold Error %d\n",err);
+    if( (err= setregion(fdrfile, regiongwfile, newfile, regionID) != 0))
+        printf("Set Region Error %d\n",err);
 
 	return 0;
-   errexit:
-     printf("Editraster use:\n %s -in <filetochange>\n",argv[0]);
-     printf("-out <filetowrite> \n");
-     printf("-changes <file with change values (x,y,newvalue)> \n");
-     return 0; 
+errexit:
+   printf("SetRetion use:\n %s -p <flow direction file>\n",argv[0]);
+   printf("-gw <region gage watershed file> \n");
+   printf("-out <output region file> \n");
+   printf("[-id <Region identifier> (if ommitted defaults to 1)] \n");
+   return 0; 
 } 
    
